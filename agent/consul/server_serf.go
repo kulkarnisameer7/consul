@@ -168,6 +168,8 @@ func (s *Server) setupSerf(conf *serf.Config, ch chan serf.Event, path string, w
 		return nil, err
 	}
 
+	conf.ReconnectTimeoutOverride = s
+
 	s.addEnterpriseSerfTags(conf.Tags)
 
 	if s.config.OverrideInitialSerfTags != nil {
@@ -175,6 +177,20 @@ func (s *Server) setupSerf(conf *serf.Config, ch chan serf.Event, path string, w
 	}
 
 	return serf.Create(conf)
+}
+
+func (s *Server) ReconnectTimeout(m *serf.Member, timeout time.Duration) time.Duration {
+	val, ok := m.Tags["rc_tm"]
+	if !ok {
+		return timeout
+	}
+	newTimeout, err := time.ParseDuration(val)
+	if err != nil {
+		s.logger.Warn("Member is advertising a malformed reconnect timeout", "member", m.Name, "rc_tm", val)
+		return timeout
+	}
+
+	return newTimeout
 }
 
 // userEventName computes the name of a user event
