@@ -1328,6 +1328,7 @@ func TestUIServiceTopology(t *testing.T) {
 			require.NoError(r, checkIndex(resp))
 
 			expect := ServiceTopology{
+				Protocol: "http",
 				Upstreams: []*ServiceTopologySummary{
 					{
 						ServiceSummary: ServiceSummary{
@@ -1367,6 +1368,7 @@ func TestUIServiceTopology(t *testing.T) {
 			require.NoError(r, checkIndex(resp))
 
 			expect := ServiceTopology{
+				Protocol: "http",
 				Downstreams: []*ServiceTopologySummary{
 					{
 						ServiceSummary: ServiceSummary{
@@ -1430,6 +1432,7 @@ func TestUIServiceTopology(t *testing.T) {
 			require.NoError(r, checkIndex(resp))
 
 			expect := ServiceTopology{
+				Protocol: "http",
 				Upstreams: []*ServiceTopologySummary{
 					{
 						ServiceSummary: ServiceSummary{
@@ -1491,6 +1494,7 @@ func TestUIServiceTopology(t *testing.T) {
 			require.NoError(r, checkIndex(resp))
 
 			expect := ServiceTopology{
+				Protocol: "http",
 				Downstreams: []*ServiceTopologySummary{
 					{
 						ServiceSummary: ServiceSummary{

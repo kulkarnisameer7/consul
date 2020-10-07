@@ -1873,6 +1873,9 @@ type ServiceTopology struct {
 
 	UpstreamDecisions   map[string]IntentionDecisionSummary
 	DownstreamDecisions map[string]IntentionDecisionSummary
+
+	// Protocol is the protocol of the service being queries
+	Protocol string
 }
 
 // IndexedConfigEntries has its own encoding logic which differs from
