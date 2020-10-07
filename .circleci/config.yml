@@ -422,7 +422,7 @@ jobs:
           at: bin/
       - run:
           name: package binary
-          command: tar -czf consul.tar.gz -C bin/ .
+          command: tar -czf consul.tar.gz -C bin/ consul
       - run:
           name: Upload to s3
           command: |
@@ -626,7 +626,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - ./agent/bindata_assetfs.go
+            - ./agent/uiserver/bindata_assetfs.go
       - run: *notify-slack-failure
 
   # commits static assets to git
@@ -641,20 +641,37 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          name: commit agent/bindata_assetfs.go if there are changes
+          name: commit agent/uiserver/bindata_assetfs.go if there are UI changes
           command: |
-            exit 0
-            if ! git diff --exit-code agent/bindata_assetfs.go; then
+            # check if there are any changes in ui-v2/
+            # if there are, we commit the ui static asset file
+            # HEAD^! is shorthand for HEAD^..HEAD (parent of HEAD and HEAD)
+            if ! git diff --quiet --exit-code HEAD^! ui-v2/; then
               git config --local user.email "hashicorp-ci@users.noreply.github.com"
               git config --local user.name "hashicorp-ci"
 
               short_sha=$(git rev-parse --short HEAD)
-              git add agent/bindata_assetfs.go
-              git commit -m "auto-updated agent/bindata_assetfs.go from commit ${short_sha}"
+              git add agent/uiserver/bindata_assetfs.go
+              git commit -m "auto-updated agent/uiserver/bindata_assetfs.go from commit ${short_sha}"
               git push origin master
             else
-              echo "no new static assets to publish"
+              echo "no UI changes so no static assets to publish"
             fi
+      - run: *notify-slack-failure
+
+  # run node tests
+  node-tests:
+    docker:
+      - image: *EMBER_IMAGE
+    steps:
+      - checkout
+      - restore_cache:
+          key: *YARN_CACHE_KEY
+      - attach_workspace:
+          at: ui-v2
+      - run:
+          working_directory: ui-v2
+          command: make test-node
       - run: *notify-slack-failure
 
   # run ember frontend tests
@@ -928,6 +945,9 @@ workflows:
                 - master
                 - ui-staging
                 - /^ui\/.*/
+      - node-tests:
+          requires:
+            - frontend-cache
       - ember-build-oss:
           requires:
             - frontend-cache
